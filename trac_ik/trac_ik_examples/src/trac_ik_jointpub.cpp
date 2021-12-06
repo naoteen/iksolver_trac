@@ -42,10 +42,10 @@ My_joint_pub::My_joint_pub(){\
   nh.param("urdf_param", urdf_param, std::string("/robot_description"));//road urdf parametar from ROS
   chain_start = "base_link";//set chain start link link name corresponds urdf file
   chain_end = "ee_link";//set chain end link
-  timeout = 0.002;//solvet time out 0.002=500Hz
+  timeout = 0.005;//solvet time out 0.005=200Hz
   eps = 1e-4;//terrance
   pub = nh.advertise<trajectory_msgs::JointTrajectory>("arm_controller/command", 10);//set  each joint position publisher
-  sub = nh.subscribe("end_effector_pose", 10, &My_joint_pub::callback,this);// set subscriber listen end effector frame
+  sub = nh.subscribe("IK_target_pose", 10, &My_joint_pub::callback,this);// set subscriber listen end effector frame
 }
 
 void My_joint_pub::find_IK(const KDL::Frame &end_effector_pose){
@@ -132,7 +132,7 @@ int main( int argc, char** argv )
 
   My_joint_pub my1;
 
-  ros::Rate loop_rate(500);
+  ros::Rate loop_rate(200);
   while (ros::ok()){
       ros::spinOnce();
       loop_rate.sleep();
