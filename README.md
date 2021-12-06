@@ -14,7 +14,8 @@
 ## Installation
 ~~~
 cd ~/catkin_ws/src
-git clone git@github.com:haxhimitsu/iksolver_track.git
+git clone https://github.com/naoteen/iksolver_trac.git
+sudo apt-get install libnlopt-cxx-dev swig ros-noetic-nlopt
 rosdep install -i --from-paths path-to-ros-package
 cd ~/catkin_ws
 catkin_make
