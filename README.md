@@ -1,161 +1,77 @@
-# Introduction
+The ROS packages in this repository were created to provide an alternative
+Inverse Kinematics solver to the popular inverse Jacobian methods in KDL.
+Specifically, KDL's convergence algorithms are based on Newton's method, which
+does not work well in the presence of joint limits --- common for many robotic
+platforms.  TRAC-IK concurrently runs two IK implementations.  One is a simple
+extension to KDL's Newton-based convergence algorithm that detects and
+mitigates local minima due to joint limits by random jumps.  The second is an
+SQP (Sequential Quadratic Programming) nonlinear optimization approach which
+uses quasi-Newton methods that better handle joint limits.  By default, the IK
+search returns immediately when either of these algorithms converges to an
+answer.  Secondary constraints of distance and manipulability are also provided 
+in order to receive back the "best" IK solution.  
+**Note:** TRAC-IK is built on top of the KDL library, which is not thread safe (there's some internals that I think use _static_ variables).  Thus, you should not use multiple instances of TRAC-IK in the same process.
 
-## Demo:
+###This repo contains 5 ROS packages:###
 
+- trac\_ik is a metapackage with build and complete [Changelog](https://bitbucket.org/traclabs/trac_ik/src/HEAD/trac_ik/CHANGELOG.rst) info.
 
+- trac\_ik\_examples contains examples on how to use the standalone TRAC-IK library.
 
-[![Alt text](https://github.com/haxhimitsu/iksolver_track/blob/master/readme_material/preview.png)](https://www.youtube.com/watch?v=Cliyr5ubmo0)
+- [trac\_ik\_lib](https://bitbucket.org/traclabs/trac_ik/src/HEAD/trac_ik_lib), the TRAC-IK kinematics code,
+builds a .so library that can be used as a drop in replacement for KDL's IK
+functions for KDL chains. Details for use are in trac\_ik\_lib/README.md.
 
+- [trac\_ik\_kinematics\_plugin](https://bitbucket.org/traclabs/trac_ik/src/HEAD/trac_ik_kinematics_plugin) builds a [MoveIt! plugin](http://moveit.ros.org/documentation/concepts/#kinematics) that can
+replace the default KDL plugin for MoveIt! with TRAC-IK for use in planning.
+Details for use are in trac\_ik\_kinematics\_plugin/README.md. (Note prior to v1.1.2, the plugin was not thread safe.)
 
-## Dependencies
-* Ubuntu 18.04, 20.04
-* ROS melodic
-* [universal_robot](https://github.com/ros-industrial/universal_robot)
-## Installation
-~~~
-cd ~/catkin_ws/src
-git clone https://github.com/naoteen/iksolver_trac.git
-sudo apt-get install libnlopt-cxx-dev swig ros-noetic-nlopt
-rosdep install -i --from-paths path-to-ros-package
-cd ~/catkin_ws
-catkin_make
-source devel/setup.bash
-~~~
-
-## Launch file
-* Cartesian position controller.
-  * input : target frame(pose,orientation) from joy stick
-  * output : each targt joit potision solved track_ik
-```
-roslaunch trac_ik_examples send_joy_frame.launch mode:=position
-```
-mode:=position\
-upload joy node and realtime ik solver.\
-target frame input from joy stick is directory sent realtime_ik node.\
-
- realtime ik solver node is``trac_ik_jointpub.cpp``
-
-* Cartesian position and force controller
-  * input : target frame(pose,orientation) and force(each axis x,y,z)
-  * target frame treat with pose_and_force_PID_controller
-
-  ```
-  roslaunch trac_ik_examples send_joy_frame.launch mode:=position_and_force
-  ```
-  and run position and force PID controller.
-  ```
-  rosrun trac_ik_examples pos_force_controller
-  ```
-  
-  ##  Requirements
-  In order to publish target frame, you have to prepare [joystick controller](https://gaming.logicool.co.jp/ja-jp/products/gamepads/f310-gamepad.940-000137.html)
-  
-  If you don't have joy stick controller, you can publish message from terminal
-  ### for position controll
-    * send target frame
-      - msg_type:``geometry_msgs/PoseStamped``
-      - send to : ``/end_effector_pose``
-
-    ```
-    rostopic pub -r 500 /end_effector_pose geometry_msgs/PoseStamped "header:
-    seq: 0
-    stamp:
-        secs: 0
-        nsecs: 0
-    frame_id: 'base_link'
-    pose:
-    position:
-        x: 0.56
-        y: 0.028
-        z: 0.611
-    orientation:
-        x: 0.0
-        y: 0.0
-        z: 0.0
-        w: 1.0"
-    ```
-    and you run 
-    ```
-    rosrun  trac_ik_examples trac_ik_jointpub
-    ```
-    instead of ```roslaunch trac_ik_examples send_joy_frame.launch mode:=position```
-
-### for position and force controller
- * send target frame and force.
-   * msg_type:``std_msgs_Float32MultiArray``
-   * send to :```\array```
-    ```
-    rostopic pub  -r 500 /array std_msgs/Float32MultiArray "layout:
-    dim:
-    - label: ''
-        size: 10
-        stride: 0
-    data_offset: 0
-    data:
-    - 0.56
-    - 0.028
-    - 0.611
-    - 0.0
-    - 0.0
-    - 0.0
-    - 1.0
-    - 0.0
-    - 0.0
-    - 0.00
-    "
-    ```
-    and run
-    ```
-    rosrun trac_ik_examples pos_force_controller
-    ```
-    finally  run ik_solver
-    ```
-    rosrun trac_ik_examples trac_ik_jointpub
-    ```
-    instead of ```roslaunch trac_ik_examples send_joy_frame.launch mode:=position_and_force```
-
-*  Note : each valuable set as
-      ```
-        rostopic pub  -r 500 /array std_msgs/Float32MultiArray "layout:
-        dim:
-        - label: ''
-            size: 10
-            stride: 0
-        data_offset: 0
-        data:
-        - pose.x
-        - pose.y
-        - pose.z
-        - rotation.x
-        - rotation.y
-        - rotation.z
-        - rotation.w
-        - force.x
-        - force.y
-        - force.z
-        "
-      ```
-      force ranges limited -9<value<9 at ```pos_force_controller.cpp```
-## How to set joint limit
-
-if you use ```roslaunch ur_gazebo ur5.launch limited:=true```, IK provide multiple result.
-For this reason, Robot may be vibrate.
-
-One of the most simple solution is  editing  joint limits at ```ur5_joint_limited_robot.urdf.xacro```.
-
-```
-  <!-- arm -->
-  <xacro:ur5_robot prefix="" joint_limited="true"
-    shoulder_pan_lower_limit="${-pi/4.0}" shoulder_pan_upper_limit="${pi/4.0}"
-    shoulder_lift_lower_limit="${-pi}" shoulder_lift_upper_limit="${pi*0.0}"
-    elbow_joint_lower_limit="${-pi*0.0}" elbow_joint_upper_limit="${pi}"
-    wrist_1_lower_limit="${-pi*1.3}" wrist_1_upper_limit="${-pi/3.0}"
-    wrist_2_lower_limit="${-pi}" wrist_2_upper_limit="${pi*0.0}"
-    wrist_3_lower_limit="${-pi}" wrist_3_upper_limit="${pi}"
-    transmission_hw_interface="$(arg transmission_hw_interface)"
-  />
-```
+- [trac\_ik\_python](https://bitbucket.org/traclabs/trac_ik/src/HEAD/trac_ik_python), SWIG based python wrapper to use TRAC-IK. Details for use are in trac\_ik\_python/README.md.
 
 
-  ## Reference
-* This repository reference [trac_ik](https://bitbucket.org/traclabs/trac_ik/src/master/)
+###As of v1.4.5, this package is part of the ROS Kinetic binaries: `sudo apt-get install ros-noetic-trac-ik` (or kinetic, indigo or jade).  Starting with v1.4.8, this has been released for ROS Lunar as well. Melodic packages have been released with 1.5.0.  Noetic with 1.6.0
+
+
+###A detailed writeup on TRAC-IK can be found here:###
+
+[Humanoids-2015](https://www.researchgate.net/publication/282852814_TRAC-IK_An_Open-Source_Library_for_Improved_Solving_of_Generic_Inverse_Kinematics) (reported results are from v1.0.0 of TRAC-IK, see below for newer results).
+
+###Some sample results are below: 
+
+_Orocos' **KDL**_ (inverse Jacobian w/ joint limits), _**KDL-RR**_ (our fixes to KDL joint limit handling), and _**TRAC-IK**_ (our concurrent inverse Jacobian and non-linear optimization solver; Speed mode) are compared below.
+
+IK success and average speed as of TRAC-IK tag v1.5.1.  All results are from 10,000 randomly generated, reachable joint configurations.  Full 3D pose IK was requested at 1e-5 Cartesian error for x,y,z,roll,pitch,yaw with a maximum solve time of 5 ms.  All IK queries are seeded from the chain's "nominal" pose midway between joint limits.
+
+**Note on success**: Neither KDL nor TRAC-IK uses any mesh information to determine if _valid_ IK solutions result in self-collisions.  IK solutions deal with link distances and joint ranges, and remain agnostic about self-collisions due to volumes.  Expected future enhancements to TRAC-IK that search for multiple solutions may also include the ability to throw out solutions that result in self collisions (provided the URDF has valid geometry information); however, this is currently not the behaviour of any generic IK solver examined to date.
+
+**Note on timings**: The timings provided include both successful and unsuccessful runs.  When an IK solution is not found, the numerical IK solver implementations will run for the full timeout requested, searching for an answer; thus for robot chains where KDL fails much of the time (e.g., Jaco-2), the KDL times are skewed towards the user requested timeout value (here 5 ms).  
+
+Chain | DOFs | Orocos' _KDL_ solve rate | Orocos' _KDL_ Avg Time | _KDL-RR_ solve rate | _KDL-RR_ Avg Time | _TRAC-IK_ solve rate | _TRAC-IK_ Avg Time
+- | - | - | - | - | - | - | -
+ABB IRB120 | 6 | **39.41%** | 3.08ms | **98.51%** | 0.33ms | **99.96%** | 0.24ms
+ABB Yumi 'single arm' | 7 | **77.35%** | 1.43ms | **91.31%** | 0.87ms | **99.70%** | 0.42ms
+Atlas 2013 arm | 6 | **75.54%** | 1.32ms | **97.24%** | 0.34ms | **99.99%** | 0.20ms
+Atlas 2015 arm | 7 | **76.22%** | 1.44ms | **94.12%** | 0.71ms | **99.80%** | 0.32ms
+Baxter arm | 7 | **61.43%** | 2.15ms | **90.78%** | 0.91ms | **99.83%** | 0.37ms
+Denso VS-068 | 6 | **27.95%** | 3.67ms | **98.32%** | 0.35ms | **99.96%** | 0.26ms
+Fanuc M-430iA/2F | 5 | **21.08%** | 3.98ms | **88.69%** | 0.84ms | **99.93%** | 0.36ms
+Fetch arm | 7 | **93.28%** | 0.65ms | **94.72%** | 0.63ms | **99.98%** | 0.24ms
+Franka Emika Panda | 7 | **62.02%** | 2.11ms | **93.21%** | 0.79ms | **99.88%** | 0.37ms
+Jaco2 | 6 | **26.25%** | 3.77ms | **97.85%** | 0.47ms | **99.92%** | 0.35ms
+KUKA LBR iiwa 14 R820 | 7 | **38.09%** | 3.31ms | **95.15%** | 0.64ms | **99.92%** | 0.28ms
+KUKA LWR 4+ | 7 | **68.22%** | 1.82ms | **96.26%** | 0.53ms | **99.98%** | 0.23ms
+Motoman CSDA10F 'torso/1-arm' | 8 | **53.58%** | 2.73ms | **96.08%** | 0.60ms | **99.96%** | 0.32ms
+Motoman MH180 | 6 | **68.46%** | 1.65ms | **99.39%** | 0.22ms | **99.99%** | 0.18ms
+NASA Robonaut2 arm | 7 | **86.89%** | 0.96ms | **95.23%** | 0.64ms | **99.85%** | 0.30ms
+NASA Robonaut2 'grasping leg' | 7 | **61.70%** | 2.21ms | **88.77%** | 1.00ms | **99.91%** | 0.40ms
+NASA Robonaut2 'leg' + waist + arm | 15 | **98.42%** | 0.67ms | **98.58%** | 0.66ms | **99.83%** | 0.57ms
+NASA Robosimian arm | 7 | **62.10%** | 2.33ms | **99.88%** | 0.28ms | **99.97%** | 0.30ms
+NASA Valkyrie arm | 7 | **45.78%** | 2.95ms | **92.34%** | 1.11ms | **99.90%** | 0.37ms
+PR2 arm | 7 | **84.70%** | 1.26ms | **88.82%** | 1.15ms | **99.96%** | 0.31ms
+Schunk LWA4D | 7 | **68.57%** | 1.79ms | **97.26%** | 0.43ms | **100.00%** | 0.23ms
+TRACLabs modular arm | 7 | **79.59%** | 1.28ms | **96.11%** | 0.54ms | **99.99%** | 0.27ms
+Universal UR3 | 6 | **17.11%** | 4.18ms | **89.08%** | 0.77ms | **98.60%** | 0.45ms
+UR5 | 6 | **16.52%** | 4.21ms | **88.58%** | 0.74ms | **99.17%** | 0.37ms
+UR10 | 6 | **14.90%** | 4.29ms | **88.63%** | 0.74ms | **99.33%** | 0.36ms
+
+Feel free to [email TRACLabs Robotics](mailto:robotics@traclabs.com) if you have any issues.
