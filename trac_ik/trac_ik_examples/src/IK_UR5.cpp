@@ -44,8 +44,8 @@ My_joint_pub::My_joint_pub()
   chain_end = "ee_link";
   timeout = 0.002;
   eps = 1e-4;
-  // pub = nh.advertise<trajectory_msgs::JointTrajectory>("arm_controller/command", 10); //sim
-  pub = nh.advertise<trajectory_msgs::JointTrajectory>("scaled_pos_traj_controller/command", 10); //real
+  pub = nh.advertise<trajectory_msgs::JointTrajectory>("arm_controller/command", 10); //sim
+  // pub = nh.advertise<trajectory_msgs::JointTrajectory>("scaled_pos_traj_controller/command", 10); //real
   sub = nh.subscribe("IK_target_pose", 10, &My_joint_pub::callback,this);
   pre_result.resize(6);
   printf("Ready...");
