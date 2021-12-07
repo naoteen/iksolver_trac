@@ -10,7 +10,7 @@
 ## Dependencies
 * Ubuntu 18.04, 20.04
 * ROS melodic
-* [universal_robot](https://github.com/ros-industrial/universal_robot)
+* [universal_robot](https://github.com/naoteen/universal_robot)
 ## Installation
 ~~~
 cd ~/catkin_ws/src
@@ -24,61 +24,16 @@ source devel/setup.bash
 
 ## Launch file
 * Cartesian position controller.
-  * input : target frame(pose,orientation) from joy stick
+  * input : target frame(pose,orientation) through topic "IK_target_pose"
   * output : each targt joit potision solved track_ik
 ```
-roslaunch trac_ik_examples send_joy_frame.launch mode:=position
+roslaunch trac_ik_examples tracik.launch sim:=false
 ```
-mode:=position\
-upload joy node and realtime ik solver.\
-target frame input from joy stick is directory sent realtime_ik node.\
+if you use gazebo simulation, sim:=true
 
- realtime ik solver node is``trac_ik_jointpub.cpp``
 
-* Cartesian position and force controller
-  * input : target frame(pose,orientation) and force(each axis x,y,z)
-  * target frame treat with pose_and_force_PID_controller
+realtime ik solver node is``trac_ik_jointpub.cpp``
 
-  ```
-  roslaunch trac_ik_examples send_joy_frame.launch mode:=position_and_force
-  ```
-  and run position and force PID controller.
-  ```
-  rosrun trac_ik_examples pos_force_controller
-  ```
-  
-  ##  Requirements
-  In order to publish target frame, you have to prepare [joystick controller](https://gaming.logicool.co.jp/ja-jp/products/gamepads/f310-gamepad.940-000137.html)
-  
-  If you don't have joy stick controller, you can publish message from terminal
-  ### for position controll
-    * send target frame
-      - msg_type:``geometry_msgs/PoseStamped``
-      - send to : ``/end_effector_pose``
-
-    ```
-    rostopic pub -r 500 /end_effector_pose geometry_msgs/PoseStamped "header:
-    seq: 0
-    stamp:
-        secs: 0
-        nsecs: 0
-    frame_id: 'base_link'
-    pose:
-    position:
-        x: 0.56
-        y: 0.028
-        z: 0.611
-    orientation:
-        x: 0.0
-        y: 0.0
-        z: 0.0
-        w: 1.0"
-    ```
-    and you run 
-    ```
-    rosrun  trac_ik_examples trac_ik_jointpub
-    ```
-    instead of ```roslaunch trac_ik_examples send_joy_frame.launch mode:=position```
 
 ### for position and force controller
  * send target frame and force.
@@ -112,7 +67,6 @@ target frame input from joy stick is directory sent realtime_ik node.\
     ```
     rosrun trac_ik_examples trac_ik_jointpub
     ```
-    instead of ```roslaunch trac_ik_examples send_joy_frame.launch mode:=position_and_force```
 
 *  Note : each valuable set as
       ```
@@ -136,6 +90,8 @@ target frame input from joy stick is directory sent realtime_ik node.\
         "
       ```
       force ranges limited -9<value<9 at ```pos_force_controller.cpp```
+      
+      
 ## How to set joint limit
 
 if you use ```roslaunch ur_gazebo ur5.launch limited:=true```, IK provide multiple result.
