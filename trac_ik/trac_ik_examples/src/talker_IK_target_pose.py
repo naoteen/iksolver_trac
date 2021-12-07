@@ -68,7 +68,7 @@ if __name__ == '__main__':
     target = targetTalker()
     target.initPose()
     
-    scale = 5
+    scale = 1
     while not rospy.is_shutdown():
         x = 0.0
         y = 0.0

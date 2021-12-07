@@ -35,46 +35,9 @@ include_directories(
   ${pkg_nlopt_INCLUDE_DIRS}
 )
 
-add_executable(ik_tests src/old/ik_tests.cpp)
-target_link_libraries(ik_tests
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  ${pkg_nlopt_LIBRARIES}
-)
 
-add_executable(trac_ik_jointpub01 src/old/trac_ik_jointpub01.cpp)
-target_link_libraries(trac_ik_jointpub01
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  ${pkg_nlopt_LIBRARIES}
-)
-add_executable(trac_ik_jointpub02 src/old/trac_ik_jointpub02.cpp)
-target_link_libraries(trac_ik_jointpub02
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  ${pkg_nlopt_LIBRARIES}
-)
-
-add_executable(trac_ik_jointpub025 src/old/trac_ik_jointpub025.cpp)
-target_link_libraries(trac_ik_jointpub025
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  ${pkg_nlopt_LIBRARIES}
-)
 add_executable(trac_ik_jointpub src/trac_ik_jointpub.cpp)
 target_link_libraries(trac_ik_jointpub
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  ${pkg_nlopt_LIBRARIES}
-)
-
-add_executable(send_frame src/send_frame.cpp)
-target_link_libraries(send_frame
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
   ${orocos_kdl_LIBRARIES}
@@ -87,29 +50,6 @@ target_link_libraries(pos_force_controller
   ${Boost_LIBRARIES}
   ${orocos_kdl_LIBRARIES}
   ${pkg_nlopt_LIBRARIES}
-)
-
-add_executable(array_pub src/old/array_pub.cpp)
-target_link_libraries(array_pub
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  ${pkg_nlopt_LIBRARIES}
-)
-
-
-add_executable(send_frame01 src/send_frame01.cpp)
-target_link_libraries(send_frame01
-  ${catkin_LIBRARIES}
-  ${Boost_LIBRARIES}
-  ${orocos_kdl_LIBRARIES}
-  ${pkg_nlopt_LIBRARIES}
-)
-
-install(TARGETS ik_tests
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 
