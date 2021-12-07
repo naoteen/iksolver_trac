@@ -26,6 +26,7 @@ class My_joint_pub{
 
   public:
     My_joint_pub();
+    std::string controller_type;
 
   private:
     void callback(const geometry_msgs::PoseStamped::ConstPtr& data);
@@ -38,13 +39,19 @@ class My_joint_pub{
      };
 
 My_joint_pub::My_joint_pub(){\
+  
+  // load controller name
+  ros::NodeHandle pnh("~");
+  pnh.getParam("ctrl_topic", controller_type);
 
-  nh.param("urdf_param", urdf_param, std::string("/robot_description"));//road urdf parametar from ROS
+  nh.param("urdf_param", urdf_param, std::string("/robot_description"));//load urdf parametar from ROS
   chain_start = "base_link";//set chain start link link name corresponds urdf file
   chain_end = "ee_link";//set chain end link
   timeout = 0.005;//solvet time out 0.005=200Hz
-  eps = 1e-4;//terrance
-  pub = nh.advertise<trajectory_msgs::JointTrajectory>("arm_controller/command", 10);//set  each joint position publisher
+  eps = 1e-4;//tolerance
+  pub = nh.advertise<trajectory_msgs::JointTrajectory>(controller_type, 1);//set joint position publisher
+  //pub = nh.advertise<trajectory_msgs::JointTrajectory>("/scaled_pos_joint_traj_controller/command", 10);// real robot controll topic
+  //pub = nh.advertise<trajectory_msgs::JointTrajectory>("/arm_controller/command", 10);//sim robot controll topic
   sub = nh.subscribe("IK_target_pose", 10, &My_joint_pub::callback,this);// set subscriber listen end effector frame
 }
 
