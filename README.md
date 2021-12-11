@@ -31,8 +31,8 @@ source devel/setup.bash
 roslaunch trac_ik_examples tracik.launch sim:=false
 rosrun trac_ik_examples takler_IK_target_pose.py
 ```
-``track_ik_example/src/takler_IK_target_pose.py`` is main control script. you can use it as guide to write your code.
-You can choose the IK solver, trackIK or moveit. Please commentout one of them for your purpose.
+``track_ik_example/src/takler_IK_target_pose.py`` is main control script. You can use it as guide to write your code.\
+You can choose the IK solver, trackIK or moveit. Please commentout one of them for your purpose.\
 If you use gazebo simulation, ``tracik.launch sim:=true``
 
 ### for position and force controller (not available now)
