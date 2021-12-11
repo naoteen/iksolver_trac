@@ -32,7 +32,7 @@ rosrun trac_ik_examples takler_IK_target_pose.py
 ```
 
 * input : target frame(pose,orientation) through topic "IK_target_pose"
-* output : each targt joit potision solved track_ik\
+* output : each targt joit potision
 
 ``track_ik_example/src/takler_IK_target_pose.py`` is main control script. You can use it as guide to write your code.\
 You can choose the IK solver, trackIK or moveit. Please commentout one of them for your purpose.
