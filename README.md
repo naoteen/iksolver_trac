@@ -9,8 +9,9 @@
 
 ## Dependencies
 * Ubuntu 18.04, 20.04
-* ROS melodic
-* [universal_robot](https://github.com/naoteen/universal_robot)
+* ROS melodic, netic
+* [universal_robot package](https://github.com/naoteen/universal_robot)
+
 ## Installation
 ~~~
 cd ~/catkin_ws/src
@@ -23,19 +24,18 @@ source devel/setup.bash
 ~~~
 
 ## Launch file
-* Cartesian position controller.
-  * input : target frame(pose,orientation) through topic "IK_target_pose"
-  * output : each targt joit potision solved track_ik
+### Cartesian position controller.
+* input : target frame(pose,orientation) through topic "IK_target_pose"
+* output : each targt joit potision solved track_ik
 ```
 roslaunch trac_ik_examples tracik.launch sim:=false
+rosrun trac_ik_examples takler_IK_target_pose.py
 ```
-if you use gazebo simulation, sim:=true
+``track_ik_example/src/takler_IK_target_pose.py`` is main control script. you can use it as guide to write your code.
+You can choose the IK solver, trackIK or moveit. Please commentout one of them for your purpose.
+If you use gazebo simulation, ``tracik.launch sim:=true``
 
-
-realtime ik solver node is``trac_ik_jointpub.cpp``
-
-
-### for position and force controller
+### for position and force controller (not available now)
  * send target frame and force.
    * msg_type:``std_msgs_Float32MultiArray``
    * send to :```\array```
