@@ -27,6 +27,7 @@ source devel/setup.bash
 ### Cartesian pose controller
 
 ```
+roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch sim:=true
 roslaunch trac_ik_examples tracik.launch sim:=ture
 rosrun trac_ik_examples takler_IK_target_pose.py
 ```
@@ -54,7 +55,7 @@ def setPose(self, pose):
         self.mani.execute(plan)
 ```
 
-If you use real robot, ``tracik.launch sim:=false``
+If you use real robot, ``sim:=false``
 
 
 <!-- ### for position and force controller (not available now)
