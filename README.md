@@ -9,7 +9,7 @@
 
 ## Dependencies
 * Ubuntu 18.04, 20.04
-* ROS melodic, netic
+* ROS melodic, noetic
 * [universal_robot package](https://github.com/naoteen/universal_robot)
 
 ## Installation
@@ -23,19 +23,40 @@ catkin_make
 source devel/setup.bash
 ~~~
 
-## Launch file
-### Cartesian position controller.
+## How to use it
+### Cartesian pose controller
 * input : target frame(pose,orientation) through topic "IK_target_pose"
 * output : each targt joit potision solved track_ik
+``track_ik_example/src/takler_IK_target_pose.py`` is main control script. You can use it as guide to write your code.
+
 ```
 roslaunch trac_ik_examples tracik.launch sim:=false
 rosrun trac_ik_examples takler_IK_target_pose.py
 ```
-``track_ik_example/src/takler_IK_target_pose.py`` is main control script. You can use it as guide to write your code.\
+
 You can choose the IK solver, trackIK or moveit. Please commentout one of them for your purpose.\
+```
+"choose the solver, trackIK or moveit"
+# # trackIK
+# def setPose(self, pose):
+#     if self.checkSafety(pose):
+#         ps = PoseStamped()
+#         ps.pose = pose
+#         self.pub.publish(ps)
+#         self.pre_pose = pose
+
+# moveit
+def setPose(self, pose):
+    if self.checkSafety(pose):
+        self.mani.set_pose_target(pose)
+        _, plan, _, _ = self.mani.plan()
+        self.mani.execute(plan)
+```
+
 If you use gazebo simulation, ``tracik.launch sim:=true``
 
-### for position and force controller (not available now)
+
+<!-- ### for position and force controller (not available now)
  * send target frame and force.
    * msg_type:``std_msgs_Float32MultiArray``
    * send to :```\array```
@@ -90,7 +111,7 @@ If you use gazebo simulation, ``tracik.launch sim:=true``
         "
       ```
       force ranges limited -9<value<9 at ```pos_force_controller.cpp```
-      
+       -->
       
 ## How to set joint limit
 
