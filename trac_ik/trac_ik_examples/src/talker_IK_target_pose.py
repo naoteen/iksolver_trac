@@ -7,7 +7,7 @@ from geometry_msgs.msg import PoseStamped
 
 '''
 Control real robot
-roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=192.168.11.3
+roslaunch ur_robot_driver ur5_bringup.launch robot_ip:=192.168.11.0
 roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch
 roslaunch trac_ik_examples tracik.launch
 
@@ -24,20 +24,21 @@ class targetTalker(object):
         self.pub = rospy.Publisher('IK_target_pose', PoseStamped, queue_size=10)
         rospy.sleep(1)
 
-    # trackIK
-    def setPose(self, pose):
-        if self.checkSafety(pose):
-            ps = PoseStamped()
-            ps.pose = pose
-            self.pub.publish(ps)
-            self.pre_pose = pose
-
-    # # moveit
+    "choose the solver, trackIK or moveit"
+    # # trackIK
     # def setPose(self, pose):
     #     if self.checkSafety(pose):
-    #         self.mani.set_pose_target(pose)
-    #         _, plan, _, _ = self.mani.plan()
-    #         self.mani.execute(plan)
+    #         ps = PoseStamped()
+    #         ps.pose = pose
+    #         self.pub.publish(ps)
+    #         self.pre_pose = pose
+
+    # moveit
+    def setPose(self, pose):
+        if self.checkSafety(pose):
+            self.mani.set_pose_target(pose)
+            _, plan, _, _ = self.mani.plan()
+            self.mani.execute(plan)
 
     def setJointAngles(self, angle):
         self.mani.clear_pose_targets()
@@ -54,6 +55,17 @@ class targetTalker(object):
         pose.position.y += y
         pose.position.z += z
         self.setPose(pose)
+
+    def generate3pointsPath(self, start, wpose, goal): # only for moveit
+        self.mani.clear_pose_targets()
+        self.mani.set_pose_target(start)
+        self.mani.go()
+        waypoints = []
+        waypoints.append(start)
+        waypoints.append(wpose)
+        waypoints.append(goal)
+        (plan, fraction) = self.mani.compute_cartesian_path(waypoints, 0.01, 0.0)
+        return plan
 
     def checkSafety(self, pose):
         if pose.position.z > 0.2:
