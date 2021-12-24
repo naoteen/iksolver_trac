@@ -2,7 +2,7 @@
   <arg name="sim" default="false"/>
 
   <group unless="$(arg sim)">
-    <param name="track_ik_jointpub/ctrl_topic" value="/pos_joint_traj_controller/command"/>
+    <param name="track_ik_jointpub/ctrl_topic" value="/scaled_pos_traj_controller/command"/>
   </group>
     
   <group if="$(arg sim)">
