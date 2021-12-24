@@ -8,8 +8,8 @@
 
 
 ## Dependencies
-* Ubuntu 18.04, 20.04
-* ROS melodic, noetic
+* Ubuntu 16.04, 18.04, 20.04
+* ROS kinetic, melodic, noetic
 * [universal_robot package](https://github.com/naoteen/universal_robot)
 
 ## Installation
