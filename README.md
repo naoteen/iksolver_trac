@@ -31,7 +31,7 @@ source devel/setup.bash
 
 ```
 roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch sim:=true
-roslaunch trac_ik_examples tracik.launch sim:=ture
+roslaunch trac_ik_examples tracik.launch sim:=true
 rosrun trac_ik_examples takler_IK_target_pose.py
 ```
 
