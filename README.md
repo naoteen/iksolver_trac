@@ -20,9 +20,6 @@ sudo apt install libnlopt-dev
 sudo apt install swig
 sudo apt install ros-noetic-nlopt
 sudo apt install libnlopt-cxx-dev
-[](
-rosdep install -i --from-paths path-to-ros-package
-)
 cd ~/catkin_ws
 catkin_make
 source devel/setup.bash
