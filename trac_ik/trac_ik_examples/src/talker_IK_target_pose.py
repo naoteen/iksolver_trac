@@ -1,9 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+import listener_ft300
 import rospy
+import tf
 import sys
 import math
 import moveit_commander
+from pyquaternion import Quaternion
 from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Wrench
 
 '''
 Control real robot
@@ -15,6 +19,8 @@ Gazebo simulation
 roslaunch ur_gazebo ur5.launch
 roslaunch ur5_moveit_config ur5_moveit_planning_execution.launch sim:=true
 roslaunch trac_ik_examples tracik.launch sim:=true
+
+rosrun trac_ik_examples talker_ft300.py 
 '''
 
 class targetTalker(object):
@@ -25,7 +31,7 @@ class targetTalker(object):
         rospy.sleep(1)
 
     "choose the solver, trackIK or moveit"
-    # # trackIK
+    # trackIK
     # def setPose(self, pose):
     #     if self.checkSafety(pose):
     #         ps = PoseStamped()
@@ -67,6 +73,28 @@ class targetTalker(object):
         (plan, fraction) = self.mani.compute_cartesian_path(waypoints, 0.01, 0.0)
         return plan
 
+    def driveFreeForce(self, wrench):
+        "Direction depends on the real FT300 pose. Please check."
+        scale_f = -1e-4
+        scale_t = -1e-2
+        pose = self.mani.get_current_pose().pose
+        p = Quaternion(pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z)
+        wrench_q = tf.transformations.quaternion_from_euler(scale_t * wrench.torque.y, scale_t * wrench.torque.x, scale_t * wrench.torque.z)
+        q = Quaternion(wrench_q[3], wrench_q[0], wrench_q[1], wrench_q[2]) 
+        quat = q*p
+
+        pose.position.x += scale_f * wrench.force.y
+        pose.position.y += scale_f * wrench.force.x
+        pose.position.z += scale_f * wrench.force.z
+
+        pose.orientation.x = quat[1]
+        pose.orientation.y = quat[2]
+        pose.orientation.z = quat[3]
+        pose.orientation.w = quat[0]
+
+        print(q)
+        self.setPose(pose)
+
     def checkSafety(self, pose):
         if pose.position.z > 0.2:
             return True
@@ -77,15 +105,18 @@ class targetTalker(object):
 if __name__ == '__main__':
     # args = sys.argv
     rospy.init_node("IK_target_takler", disable_signals=True)
+    rate = rospy.Rate(80)
     target = targetTalker()
+    FT = listener_ft300.RobotiqFTsensor()
+
     target.initPose()
     
     scale = 1
+    x = 0.0
+    y = 0.0
+    z = 0.0
     while not rospy.is_shutdown():
-        x = 0.0
-        y = 0.0
-        z = 0.0
-        key = input('command: ')
+        key = raw_input('command: ')
         if key == 'w':
             x = -0.01*scale
         if key == 's':
@@ -106,3 +137,7 @@ if __name__ == '__main__':
             scale = float(key)
         
         target.moveCartesianSpace(x,y,z)
+
+    # while not rospy.is_shutdown():
+    #     target.driveFreeForce(FT.wrench_smooth)
+    #     rate.sleep()
